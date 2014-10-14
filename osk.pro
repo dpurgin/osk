@@ -4,21 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+TEMPLATE = subdirs
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+SUBDIRS = src jansson
 
-TARGET = osk
-TEMPLATE = app
-
-LIBS +=
-
-SOURCES += main.cpp\
-    onscreenkeyboard.cpp \
-    onscreenbutton.cpp \
-    application.cpp
-
-HEADERS  += \
-    onscreenkeyboard.h \
-    onscreenbutton.h \
-    application.h
+src.depends = jansson

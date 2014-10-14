@@ -26,8 +26,6 @@ void OnScreenButton::mouseReleaseEvent(QMouseEvent* event)
         vkMap.insert(Space, VK_SPACE);
     }
 
-//    QMessageBox::information(NULL, tr("Info"), QString("Main: %1, Shift: %2").arg(main()).arg(shift()))
-
     if (role() == Character)
     {
         WORD scanCode;
@@ -190,14 +188,14 @@ void OnScreenButton::updateText()
     else
         primary = textMap.value(role(), title());
 
-    primary = QString("<span style=\"font-face: 'Segoe UI Light'; color: %1; font-size: %2px\">%3</span>")
-                    .arg(pressed()? "black": "white").arg(mainFontSize).arg(primary);
+    QString t;
 
-    QString t(primary);
+    t = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: %1; font-size: %2px\">%3</span>");
+    t = t.arg(pressed()? "black": "white").arg(mainFontSize).arg(primary);
 
     if (showShift())
     {
-        secondary = QString("<span style=\"font-face: 'Segoe UI Light'; color: grey; font-size: %1px\">&nbsp;%2</span>")
+        secondary = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: grey; font-size: %1px\">&nbsp;%2</span>")
                 .arg(shiftFontSize)
                 .arg(secondary);
 

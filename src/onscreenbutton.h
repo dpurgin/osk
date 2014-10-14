@@ -28,7 +28,7 @@ public:
     };
 
 public:
-    OnScreenButton(Role role, QString title = QString(), QWidget* parent = 0)
+    OnScreenButton(Role role, const QString& title = QString(), QWidget* parent = 0)
         : QLabel(parent),
           mRole(role),
           mShowShift(false),

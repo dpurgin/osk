@@ -4,14 +4,12 @@
 #include <QDir>
 #include <QFile>
 #include <QGridLayout>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonParseError>
 #include <QMap>
 #include <QMessageBox>
 
 #include <Windows.h>
+
+#include <jansson.h>
 
 #include "application.h"
 #include "onscreenbutton.h"
@@ -20,14 +18,16 @@ OnScreenKeyboard::OnScreenKeyboard(QWidget* parent)
     : QWidget(parent),
       mShiftMode(false),
       mCapsLockMode(false),
-      gridLayout(NULL)
+      gridLayout(NULL),
+      mDockPosition(Bottom),
+      mKeyboardLeft(0),
+      mKeyboardTop(0),
+      mKeyboardWidth(1080),
+      mKeyboardHeight(300)
 {
     setStyleSheet("background:black");
 
-    QDesktopWidget dw;
-
-    setGeometry(0, dw.screenGeometry().height() - 320,
-                dw.screenGeometry().width(), 300);
+    setDockPosition(Bottom);
 
     setWindowFlags(Qt::FramelessWindowHint);
 
@@ -65,54 +65,41 @@ void OnScreenKeyboard::loadLayout(const QString& fileName)
         rolesMap.insert("space", OnScreenButton::Space);
     }
 
-    QDir dir(qApp->applicationDirPath());
+    QDir dir(qApp->applicationDirPath() + "/layouts");
 
     QFile inputFile(dir.absoluteFilePath(fileName));
 
-    if (!inputFile.open(QFile::ReadOnly))
+    if (!inputFile.exists())
     {
-        QMessageBox::critical(this,
+        QMessageBox::critical(NULL,
                               tr("Error"),
-                              QString(tr("Unable to open keyboard layout: %1")).arg(fileName));
+                              QString(tr("Keyboard layout does not exist: %1")).arg(fileName));
 
         return;
     }
 
-    QJsonParseError jsonParseError;
+    json_error_t jsonParseError;
 
-    QJsonDocument doc = QJsonDocument::fromJson(inputFile.readAll(), &jsonParseError);
+    json_t* root = json_load_file(inputFile.fileName().toAscii().data(), 0, &jsonParseError);
 
-    inputFile.close();
 
-    if (jsonParseError.error != QJsonParseError::NoError)
+    if (!root)
     {
-        QMessageBox::critical(this,
+        QMessageBox::critical(NULL,
                               tr("Error"),
-                              QString(tr("Unable to parse keyboard layout: %1")).arg(jsonParseError.errorString()));
+                              QString(tr("Unable to parse keyboard layout: %1")).arg(jsonParseError.text));
 
         return;
     }
 
-    if (!doc.isObject())
+    if (!json_is_object(root))
     {
-        QMessageBox::critical(this,
+        QMessageBox::critical(NULL,
                               tr("Error"),
                               tr("Keyboard layout root must be of type Object"));
+        json_decref(root);
         return;
     }
-
-    QJsonObject root = doc.object();
-
-    if (!root.contains("rows") || !root.value("rows").isArray())
-    {
-        QMessageBox::critical(this,
-                              tr("Error"),
-                              tr("Keyboard layout must contain 'rows' of type Array"));
-        return;
-    }
-
-/*    qDeleteAll(buttons);
-    buttons.clear();*/
 
     while (gridLayout->count() > 0)
     {
@@ -121,103 +108,171 @@ void OnScreenKeyboard::loadLayout(const QString& fileName)
         delete item;
     }
 
-    int rowIdx = 0;
+    int defaultRowSpan =
+            json_is_integer(json_object_get(root, "rowSpan"))?
+                json_integer_value(json_object_get(root, "rowSpan")):
+                1;
 
-    int defaultRowSpan = root.value("rowSpan").toInt(1);
-    int defaultColSpan = root.value("colSpan").toInt(1);
-    bool defaultShowShift = root.value("showShift").toBool();
+    int defaultColSpan =
+            json_is_integer(json_object_get(root, "colSpan"))?
+                json_integer_value(json_object_get(root, "colSpan")):
+                1;
 
-    foreach (QJsonValue rowValue, root.value("rows").toArray())
+    bool defaultShowShift =
+            json_is_boolean(json_object_get(root, "showShift"))?
+                json_boolean_value(json_object_get(root, "showShift")):
+                false;
+
+    json_t* rowsArray = json_object_get(root, "rows");
+
+    if (!json_is_array(rowsArray))
     {
-        if (!rowValue.isObject())
+        QMessageBox::critical(this,
+                              tr("Error"),
+                              tr("Keyboard layout must contain 'rows' of type Array"));
+
+        json_decref(root);
+
+        return;
+    }
+
+    size_t rowIdx = 0;
+    json_t* rowObject = NULL;
+
+    json_array_foreach(rowsArray, rowIdx, rowObject)
+    {
+        if (!json_is_object(rowObject))
         {
             QMessageBox::critical(this,
                                   tr("Error"),
                                   QString(tr("rows[%1] must be of type Object")).arg(rowIdx));
+
+            json_decref(root);
+
             return;
         }
 
-        QJsonObject rowObject = rowValue.toObject();
+        json_t* itemsArray = json_object_get(rowObject, "items");
 
-        if (!rowObject.value("items").isArray())
+        if (!json_is_array(itemsArray))
         {
             QMessageBox::critical(this,
                                   tr("Error"),
                                   QString(tr("rows[%1] must contain 'items' of type Array")).arg(rowIdx));
+
+            json_decref(root);
+
             return;
         }
 
-        QJsonArray itemsArray = rowObject.value("items").toArray();
+        int defaultRowSpanAtRow =
+                json_is_integer(json_object_get(rowObject, "rowSpan"))?
+                    json_integer_value(json_object_get(rowObject, "rowSpan")):
+                    defaultRowSpan;
 
-        int defaultRowSpanAtRow = rowObject.value("rowSpan").toInt(defaultRowSpan);
-        int defaultColSpanAtRow = rowObject.value("colSpan").toInt(defaultColSpan);
-        bool defaultShowShiftAtRow = rowObject.value("showShift").toBool(defaultShowShift);
+        int defaultColSpanAtRow =
+                json_is_integer(json_object_get(rowObject, "colSpan"))?
+                    json_integer_value(json_object_get(rowObject, "colSpan")):
+                    defaultColSpan;
 
-        int itemIdx = 0;
-        int colIdx = 0;
+        bool defaultShowShiftAtRow =
+                json_is_boolean(json_object_get(rowObject, "showShift"))?
+                    json_boolean_value(json_object_get(rowObject, "showShift")):
+                    defaultShowShift;
 
-        foreach (QJsonValue itemValue, itemsArray)
+        size_t itemIdx = 0;
+        size_t colIdx = 0;
+
+        json_t* itemObject = NULL;
+
+        json_array_foreach(itemsArray, itemIdx, itemObject)
         {
-            if (!itemValue.isObject())
+            if (!json_is_object(itemObject))
             {
-                QMessageBox::critical(this,
+                QMessageBox::critical(NULL,
                                       tr("Error"),
                                       QString(tr("rows[%1].items[%2] must be of type Object")).arg(rowIdx).arg(itemIdx));
-                return;
-            }
 
-            QJsonObject itemObject = itemValue.toObject();
+                json_decref(root);
+
+                return;
+
+            }
 
             OnScreenButton* button = NULL;
 
+            json_t* roleValue = json_object_get(itemObject, "role");
 
-            if (itemObject.value("role").toString("char") == QLatin1String("char"))
+            if (json_is_string(roleValue) && QLatin1String(json_string_value(roleValue)) == QLatin1String("loadlayout"))
+            {
+                QString layout = QString::fromUtf8(json_string_value(json_object_get(itemObject, "layout")));
+                QString title = QString::fromUtf8(json_string_value(json_object_get(itemObject, "title")));
+
+                button = new OnScreenButton(layout, title);
+            }
+            // role may be empty. If so, considered to be equal to 'char'
+            else if (!json_is_string(roleValue) || QLatin1String(json_string_value(roleValue)) == QLatin1String("char"))
             {
                 QChar main;
-                QChar alternative;
+                QChar shift;
 
-                if (itemObject.value("main").isDouble())
-                    main = QChar(itemObject.value("main").toInt());
-                else if (itemObject.value("main").isString())
-                    main = QChar(itemObject.value("main").toString().at(0));
+                json_t* mainValue = json_object_get(itemObject, "main");
+                json_t* shiftValue = json_object_get(itemObject, "shift");
 
-                if (itemObject.value("shift").isDouble())
-                    alternative = QChar(itemObject.value("shift").toInt());
-                else if (itemObject.value("shift").isString())
-                    alternative = QChar(itemObject.value("shift").toString().at(0));
+                if (json_is_integer(mainValue))
+                    main = QChar(static_cast< int >(json_integer_value(mainValue)));
+                else if (json_is_string(mainValue))
+                    main = QString::fromUtf8(json_string_value(mainValue)).at(0);
 
-                button = new OnScreenButton(main, alternative);
-            }
-            else if (itemObject.value("role").toString() == QLatin1String("loadlayout"))
-            {
-                button = new OnScreenButton(itemObject.value("layout").toString(), itemObject.value("title").toString());
+                if (json_is_integer(shiftValue))
+                    shift = QChar(static_cast< int >(json_integer_value(shiftValue)));
+                else if (json_is_string(shiftValue))
+                    shift = QString::fromUtf8(json_string_value(shiftValue)).at(0);
+
+                button = new OnScreenButton(main, shift);
             }
             else
             {
-                button = new OnScreenButton(rolesMap.value(itemObject.value("role").toString(), OnScreenButton::Undefined));
+                button = new OnScreenButton(
+                            rolesMap.value(QLatin1String(json_is_string(roleValue)? json_string_value(roleValue): ""),
+                            OnScreenButton::Undefined));
             }
 
             if (button)
             {
-                int rowSpan = itemObject.value("rowSpan").toInt(defaultRowSpanAtRow);
-                int colSpan = itemObject.value("colSpan").toInt(defaultColSpanAtRow);
-                bool showShift = itemObject.value("showShift").toBool(defaultShowShiftAtRow);
+                int rowSpan =
+                        json_is_integer(json_object_get(itemObject, "rowSpan"))?
+                            json_integer_value(json_object_get(itemObject, "rowSpan")):
+                            defaultRowSpanAtRow;
 
-                button->setTitle(itemObject.value("title").toString());
+                int colSpan =
+                        json_is_integer(json_object_get(itemObject, "colSpan"))?
+                            json_integer_value(json_object_get(itemObject, "colSpan")):
+                            defaultColSpanAtRow;
+
+                bool showShift =
+                        json_is_boolean(json_object_get(itemObject, "showShift"))?
+                            json_boolean_value(json_object_get(itemObject, "showShift")):
+                            defaultShowShiftAtRow;
+
+                if (json_is_string(json_object_get(itemObject, "title")))
+                    button->setTitle(QString::fromUtf8(json_string_value(json_object_get(itemObject, "title"))));
+
                 button->setShowShift(showShift);
 
-//                if (itemObject.value("title").isString())
-//                    button->setTitle(itemObject.value("title").toString());
+                int col = colIdx;
 
+                if (json_is_integer(json_object_get(itemObject, "col")))
+                    col = json_integer_value(json_object_get(itemObject, "col"));
 
-                gridLayout->addWidget(button, rowIdx, itemObject.value("col").toInt(colIdx), rowSpan, colSpan);
+                gridLayout->addWidget(button, rowIdx, col, rowSpan, colSpan);
 
                 colIdx += colSpan;
             }
-
-            itemIdx++;
         }
-
-        rowIdx++;
     }
+
+    json_decref(root);
+
+    app->setLastLayout(fileName);
 }

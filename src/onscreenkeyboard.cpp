@@ -127,7 +127,7 @@ void OnScreenKeyboard::loadLayout(const QString& fileName)
 
     if (!json_is_array(rowsArray))
     {
-        QMessageBox::critical(this,
+        QMessageBox::critical(NULL,
                               tr("Error"),
                               tr("Keyboard layout must contain 'rows' of type Array"));
 
@@ -143,7 +143,7 @@ void OnScreenKeyboard::loadLayout(const QString& fileName)
     {
         if (!json_is_object(rowObject))
         {
-            QMessageBox::critical(this,
+            QMessageBox::critical(NULL,
                                   tr("Error"),
                                   QString(tr("rows[%1] must be of type Object")).arg(rowIdx));
 
@@ -156,7 +156,7 @@ void OnScreenKeyboard::loadLayout(const QString& fileName)
 
         if (!json_is_array(itemsArray))
         {
-            QMessageBox::critical(this,
+            QMessageBox::critical(NULL,
                                   tr("Error"),
                                   QString(tr("rows[%1] must contain 'items' of type Array")).arg(rowIdx));
 

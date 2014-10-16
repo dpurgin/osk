@@ -1,8 +1,9 @@
 # osk
 
-Osk is a flexible and customizable on-screen keyboard for Windows supporting Unicode input and dynamic layout switching. It is designed to be used primarily on self-service terminals or other environments where only limited keyboard input is allowed. Osk simulates keystrokes using [SendInput](http://msdn.microsoft.com/en-us/library/windows/desktop/ms646310%28v=vs.85%29.aspx) call.
+Osk is a flexible and customizable on-screen keyboard for Windows supporting Unicode input and dynamic layout switching. It is designed to be used primarily on self-service terminals or in any other environment where only limited keyboard input is allowed. Osk simulates keystrokes using [SendInput](http://msdn.microsoft.com/en-us/library/windows/desktop/ms646310%28v=vs.85%29.aspx) call.
 
 ## Build Requirements
+ - Jansson (referenced in repository)
  - Qt 4.8 
  - Windows SDK 7
  - Microsoft Visual C++ 2010 Express
@@ -15,6 +16,34 @@ Osk is ran by invoking its executable. After start it reads the settings file an
  - floating at fixed position with fixed geometry.
  
 Osk is designed to prevent accidental closing, so there's no way to exit the application except sending the TERM signal using taskkill, for example.
+
+## Settings
+
+Settings are stored in `osk.ini` file at the same level as the executable. The settings file is explained below:
+
+```
+[layout]
+openLastLayout=false            # put this to true if you want the application to load the last layout used upon start
+lastLayout=en_US.json           # the application updates this field whenever a user changes layout
+defaultLayout=en_US.json        # reasonable default layout to start the application with
+
+[position]
+dockPosition=bottom             # the application will be docked to the bottom of the screen. 
+left=0                          # not used while docking, specifies upper left corner upon start otherwise
+top=0                           # not used while docking, specifies upper left corner upon start otherwise
+width=1080                      # not used while docking, specifies keyboard width otherwise
+height=350                      # keyboard height while docking or floating mode
+```
+
+### Docking and Keyboard Geometry
+
+The `dockPosition` option takes on of three values:
+
+ - `bottom` - the keyboard is shown at the bottom of the screen with `height` property of the settings, screen width;
+ - `top` - the keyboard is shown at the top of the screen with `height` property of the settings, screen width;
+ - `none` - the keyboard is shown at `(left, top`) position with `width` and `height` of the settings.
+
+In any case, the keyboard can not be moved by user.
 
 ## Editing Layouts
 
@@ -35,35 +64,135 @@ Each key must be assigned its specific role. This affects the definition of key.
  - `up` -- sends the Up Array key code;
  - `down` -- sends the Down Arrow key code;
  - `left` -- sends the Left Arrow key code;
- - `right` -- sends the right Arrow key code
+ - `right` -- sends the right Arrow key code;
+ - `loadlayout` -- removes current layout and loads the new one.
+ 
+ Key definition can contain the following properties:
 
-```javascript
+```JSON
 {
-    "role": string,
+    "role": string,   // a role from the list above
     
-    "main": string or integer, // only for 'char' role
-    "shift": string or integer  // only for 'char' role
+    "col": integer, // optional, column to put the key to
+    "colSpan": integer, // optional, column spanning
+    "rowSpan": integer, // optional, row spanning
+    
+    "main": string or integer, // 'char' role only
+    "shift": string or integer,  // optional, 'char' role only, represents input in combination with Shift
+    "showShift": boolean, // optional, 'char' role only, render alternative character on the key
+    
+    "title": string, // 'loadlayout' role only, text to display on button
+    "layout": string, // 'loadlayout' role only, file name of a layout to load relative to 'layouts' directory
 }
 ```
 
+#### Character Key Example 
 
-####
+The following example defines a key that sends '1' as its primary input, '!' as input in Shift mode. Both primary and shift mode characters are rendered on the key.
+
+```JSON
+{
+    "main": "1",
+    "shift": "!",
+    "showShift": true
+}
+```
+
+The following example defines a key that sends lowercase 'z' as its primary input, capital 'Z' as its Shift mode input. Only the current mode input is rendered on the key.
+
+```JSON
+{
+    "main": "z",
+    "shift": "Z",
+    "showShift": false
+}
+```
+
+#### Function Key Example
+
+The following example defines a Tab key. It is spanning 3 columns which would make it wider than the character keys with `colSpan: 2`.
+
+```JSON
+{
+    "role": "tab",
+    "colSpan": 3
+}
+```
+
+#### Loadlayout Key Example
+
+The following example defines a key with "Deu" text on it that loads German layout from `layouts/de_DE.json`.
+
+```JSON
+{
+    "role": "loadlayout",
+    "layout": "de_DE.json",
+    "title": "Deu"
+}
+```
 
 ### Rows
 
-Key definitions are organized in `rows` 
- 
-### Layout
+Each set of key definitions that has to appear as a row on the keyboard should be put in a JSON Array of Objects defining the keys in the desired order. Osk reads the array and lays out the keys in the same order they appear. The array of key definitions has to be put into `items` property of a keyboard row definition. Row definition is a JSON Object contatining the following properties: 
 
-Rows are organized in the root object.
-
-The root object must contain `rows` Array. Each item of `rows` array describes a line of keys on the keyboard. The root object may also contain integer `colSpan`, `rowSpan` and a boolean `showShift` items. If defined, these values are applied to all the keys on the keyboard unless on the nested levels.
-
-```javascript
+```JSON
 {
-    "colSpan": 2,    // default colSpan applied to all the keys in keyboard
+    "colSpan": integer, // optional, default column spanning for all items
+    "rowSpan": integer, // optional, default row spanning for all items
+    "showShift": boolean, // optional, default value for rendering Shift mode character for all items
     
-    "rows": 
+    "items": array   // mandatory, array of key definitions (see above)
 }
 ```
 
+`colSpan`, `rowSpan` and `showShift` properties specified in row definition are used for all the keys in this row unless overriden by the same property in key definition. Consider the following example of row definition:
+
+```JSON
+{
+    "showShift": false,    // shift mode characters are not rendered for all keys in this row
+    
+    "items": [{
+        "main": "j",
+        "shift": "J"
+    }, {
+        "main": "k",
+        "shift": "K"
+    }, {
+        "main": "l",
+        "shift": "L"
+    }, {
+        "main": ";",
+        "shift": "\"",
+        "showShift": true  // shift mode character is rendered for this key only
+    }]
+}
+```
+
+Empty space can be created by explicitly specifiyng `col` while defining a key. Consider the following example of creating a numpad: 
+
+```JSON
+{
+    "colSpan": 2,
+    "showShift": true
+    
+    "items": [{
+        "main": "-",     // layed out in position 1, colspan 2
+        "shift": "_"
+    }, {
+        "main": "=",     // layed out in position 3, colspan 2
+        "shift": "+"
+    }, {
+        "role": "backspace",   // layed out in position 5, twice wider than the character buttons
+        "colSpan": 4
+    }, {
+        "main": "7",      // would lay out in position 9 but explicitly set to col 10, hence creating empty space
+        "col": 10         // between "main" keyboard and numpad
+    }]
+}
+```
+ 
+Rows are organized in `rows` Array of the root object in the same manner as keys are organized in a row. The root object may also contain integer `colSpan`, `rowSpan` and a boolean `showShift` values. If defined, these values are applied to all the keys on the keyboard unless explicitly overriden for a row or a key.
+
+### Shift Mode
+
+To input the characters defined in `shift` property of key definitions, the keyboard must go into Shift mode. This can be done by pressing a button with either `shift` or `capslock` role. `Shift` key puts the keyboard into the Shift mode for one keystroke, while `capslock` key does this for unlimited keystrokes until the `capslock` button isn't hit again. Being pressed at the same time, `capslock` and `shift` button do effectively cancel each other, hence moving the keyboard back into Main mode again. 

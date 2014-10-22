@@ -27,6 +27,8 @@ class OnScreenButton : public QLabel
 {
     Q_OBJECT
 
+    Q_PROPERTY(bool mPressed READ pressed WRITE setPressed NOTIFY pressedChanged)
+
 public:
     enum Role {
         Undefined,
@@ -87,6 +89,7 @@ public:
     QChar shift() const { return mShift; }
 
     bool pressed() const { return mPressed; }
+    void setPressed(bool pressed) { emit pressedChanged(mPressed = pressed); }
 
     QString title() const { return mTitle; }
     void setTitle(const QString& title) { mTitle = title; }
@@ -95,6 +98,7 @@ public:
     void setShowShift(bool val) { mShowShift = val; }
 
 signals:
+    void pressedChanged(bool pressed);
 
 public slots:
 

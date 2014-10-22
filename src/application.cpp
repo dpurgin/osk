@@ -37,7 +37,7 @@ Application::Application(int& argc, char* argv[])
         mOpenLastLayout = settings->value("openLastLayout", true).toBool();
         mLastLayout = settings->value("lastLayout").toString();
         mDefaultLayout = settings->value("defaultLayout").toString();
-    settings->endGroup();
+    settings->endGroup();        
 
     if (defaultLayout().isEmpty())
         mDefaultLayout = "en_US.json";
@@ -45,6 +45,21 @@ Application::Application(int& argc, char* argv[])
     if (openLastLayout() && lastLayout().isEmpty())
         setLastLayout(defaultLayout());
 
+    QFile css(applicationDirPath() + "/style.css");
+
+    if (css.open(QFile::ReadOnly))
+    {
+        setStyleSheet(QString::fromUtf8(css.readAll().data()));
+        css.close();
+    }
+
+//    settings->beginGroup("style");
+//        mPrimaryFontFace = settings->value("primaryFontFace", "Segoe UI Light").toString();
+//        mSecondaryFontFace = settings->value("secondaryFontFace", "Segoe UI Light").toString();
+
+//        mPrimaryFontColor = settings->value("primaryFontColor", "white").toString();
+//        mSecondaryFontColor = settings->value("secondaryFontColor", "")
+//    settings->endGroup();
 
     mOsk = new OnScreenKeyboard();
 

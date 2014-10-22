@@ -143,7 +143,7 @@ void OnScreenButton::init()
 
 void OnScreenButton::toggle()
 {
-    mPressed = !mPressed;
+    setPressed(!mPressed);
 
     updateStylesheet();
     updateText();
@@ -151,19 +151,19 @@ void OnScreenButton::toggle()
 
 void OnScreenButton::updateStylesheet()
 {
-    QStringList style =
-            QStringList() << QString("border: 2px solid;") <<
-                             QString("border-radius: 3px;") <<
-                             QString("border-top-color: rgb(230, 230, 230);") <<
-                             QString("border-right-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(230, 230, 230, 255), stop:1 rgba(100, 100, 100, 255));") <<
-                             QString("border-left-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(230, 230, 230, 255), stop:1 rgba(100, 100, 100, 255));");
+//    QStringList style =
+//            QStringList() << QString("border: 2px solid;") <<
+//                             QString("border-radius: 3px;") <<
+//                             QString("border-top-color: rgb(230, 230, 230);") <<
+//                             QString("border-right-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(230, 230, 230, 255), stop:1 rgba(100, 100, 100, 255));") <<
+//                             QString("border-left-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(230, 230, 230, 255), stop:1 rgba(100, 100, 100, 255));");
 
-    if (pressed())
-        style.append("background-color: rgb(230, 230, 230)");
-    else
-        style.append("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(147, 147, 147, 255), stop:1 rgba(0, 0, 0, 255));");
+//    if (pressed())
+//        style.append("background-color: rgb(230, 230, 230)");
+//    else
+//        style.append("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(147, 147, 147, 255), stop:1 rgba(0, 0, 0, 255));");
 
-    setStyleSheet(style.join(QChar(';')));
+//    setStyleSheet(style.join(QChar(';')));
 
     setAlignment(Qt::AlignCenter);
 }
@@ -210,16 +210,37 @@ void OnScreenButton::updateText()
 
     QString t;
 
-    t = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: %1; font-size: %2px\">%3</span>");
-    t = t.arg(pressed()? "black": "white").arg(mainFontSize).arg(primary);
+//    t = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: %1; font-size: %2px\">%3</span>");
+//    t = t.arg(pressed()? "black": "white").arg(mainFontSize).arg(primary);
+
+//    if (showShift())
+//    {
+//        secondary = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: grey; font-size: %1px\">&nbsp;%2</span>")
+//                .arg(shiftFontSize)
+//                .arg(secondary);
+
+//        t.append(secondary);
+//    }
+
+    QString style = qApp->styleSheet();
+
+    QRegExp primaryRe("\\.key-primary\\s*\\{(.+)\\}");
+    primaryRe.setMinimal(true);
+    primaryRe.indexIn(qApp->styleSheet());
+
+    QString stylePrimary = primaryRe.cap(1);
+
+    t = QString("<span style=\"%1\">%2</span>").arg(stylePrimary).arg(primary);
 
     if (showShift())
     {
-        secondary = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: grey; font-size: %1px\">&nbsp;%2</span>")
-                .arg(shiftFontSize)
-                .arg(secondary);
+        QRegExp secondaryRe("\\.key-secondary\\s*\\{(.+)\\}");
+        secondaryRe.setMinimal(true);
+        secondaryRe.indexIn(qApp->styleSheet());
 
-        t.append(secondary);
+        QString styleSecondary = secondaryRe.cap(1);
+
+        t.append(QString("<span style=\"%1\">%2</span>").arg(styleSecondary).arg(secondary));
     }
 
     setText(t);

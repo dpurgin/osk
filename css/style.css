@@ -1,0 +1,40 @@
+/* keyboard background style */
+QWidget {
+    background-color: gray;
+}
+
+/* unpressed key style */
+QLabel {
+    font-family: 'Segoe UI Light';
+
+    background-color: black;
+}
+
+/* pressed key style */
+QLabel[pressed="true"] {
+    background-color: #A0A0A0;
+}
+
+/* primary key text */
+.key-primary {
+    font-size: 32px;
+    color: white;
+}
+
+/* pressed primary key text */
+.key-primary:active {
+    font-size: 32px;
+    color: black;
+}
+
+/* Shift mode text style */
+.key-secondary {
+    font-size: 24px;
+    color: #A0A0A0;
+}
+
+/* pressed Shift mode text style */
+.key-secondary:active {
+    font-size: 24px;
+    color: white;
+}

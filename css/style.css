@@ -30,7 +30,7 @@ QLabel[pressed="true"] {
 /* Shift mode text style */
 .key-secondary {
     font-size: 24px;
-    color: #A0A0A0;
+    color: #808080;
 }
 
 /* pressed Shift mode text style */

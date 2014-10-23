@@ -22,12 +22,11 @@
 #define ONSCREENBUTTON_H
 
 #include <QLabel>
+#include <QVariant>
 
 class OnScreenButton : public QLabel
 {
     Q_OBJECT
-
-    Q_PROPERTY(bool mPressed READ pressed WRITE setPressed NOTIFY pressedChanged)
 
 public:
     enum Role {
@@ -89,7 +88,7 @@ public:
     QChar shift() const { return mShift; }
 
     bool pressed() const { return mPressed; }
-    void setPressed(bool pressed) { emit pressedChanged(mPressed = pressed); }
+    void setPressed(bool pressed) { mPressed = pressed; setProperty("pressed", QVariant(pressed)); }
 
     QString title() const { return mTitle; }
     void setTitle(const QString& title) { mTitle = title; }
@@ -110,7 +109,6 @@ private:
     void init();
 
 private slots:
-    void updateStylesheet();
     void updateText();
 
     void toggle();

@@ -22,6 +22,7 @@
 
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QStyle>
 
 #include <Windows.h>
 
@@ -123,7 +124,6 @@ void OnScreenButton::init()
     setMinimumWidth(40);
     setMinimumHeight(40);
 
-    updateStylesheet();
     updateText();
 
     if (role() == CapsLock)
@@ -145,27 +145,10 @@ void OnScreenButton::toggle()
 {
     setPressed(!mPressed);
 
-    updateStylesheet();
     updateText();
-}
 
-void OnScreenButton::updateStylesheet()
-{
-//    QStringList style =
-//            QStringList() << QString("border: 2px solid;") <<
-//                             QString("border-radius: 3px;") <<
-//                             QString("border-top-color: rgb(230, 230, 230);") <<
-//                             QString("border-right-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(230, 230, 230, 255), stop:1 rgba(100, 100, 100, 255));") <<
-//                             QString("border-left-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(230, 230, 230, 255), stop:1 rgba(100, 100, 100, 255));");
-
-//    if (pressed())
-//        style.append("background-color: rgb(230, 230, 230)");
-//    else
-//        style.append("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(147, 147, 147, 255), stop:1 rgba(0, 0, 0, 255));");
-
-//    setStyleSheet(style.join(QChar(';')));
-
-    setAlignment(Qt::AlignCenter);
+    style()->unpolish(this);
+    style()->polish(this);
 }
 
 void OnScreenButton::updateText()
@@ -184,9 +167,6 @@ void OnScreenButton::updateText()
         textMap.insert(LeftArrow, QChar(0x2190));
         textMap.insert(RightArrow, QChar(0x2192));
     }
-
-    int mainFontSize = height() * 0.6;
-    int shiftFontSize = height() * 0.3;
 
     QString primary;
     QString secondary;
@@ -210,21 +190,15 @@ void OnScreenButton::updateText()
 
     QString t;
 
-//    t = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: %1; font-size: %2px\">%3</span>");
-//    t = t.arg(pressed()? "black": "white").arg(mainFontSize).arg(primary);
-
-//    if (showShift())
-//    {
-//        secondary = QString::fromUtf8("<span style=\"font-face: 'Segoe UI Light'; color: grey; font-size: %1px\">&nbsp;%2</span>")
-//                .arg(shiftFontSize)
-//                .arg(secondary);
-
-//        t.append(secondary);
-//    }
-
     QString style = qApp->styleSheet();
 
-    QRegExp primaryRe("\\.key-primary\\s*\\{(.+)\\}");
+    QRegExp primaryRe;
+
+    if (pressed())
+        primaryRe.setPattern("\\.key-primary:active\\s*\\{(.+)\\}");
+    else
+        primaryRe.setPattern("\\.key-primary\\s*\\{(.+)\\}");
+
     primaryRe.setMinimal(true);
     primaryRe.indexIn(qApp->styleSheet());
 
@@ -234,14 +208,21 @@ void OnScreenButton::updateText()
 
     if (showShift())
     {
-        QRegExp secondaryRe("\\.key-secondary\\s*\\{(.+)\\}");
+        QRegExp secondaryRe;
+
+        if (pressed())
+            secondaryRe.setPattern("\\.key-secondary:active\\s*\\{(.+)\\}");
+        else
+            secondaryRe.setPattern("\\.key-secondary\\s*\\{(.+)\\}");
+
         secondaryRe.setMinimal(true);
         secondaryRe.indexIn(qApp->styleSheet());
 
         QString styleSecondary = secondaryRe.cap(1);
 
-        t.append(QString("<span style=\"%1\">%2</span>").arg(styleSecondary).arg(secondary));
+        t.append(QString("<span style=\"%1\">&nbsp;%2</span>").arg(styleSecondary).arg(secondary));
     }
 
     setText(t);
+    setAlignment(Qt::AlignCenter);
 }

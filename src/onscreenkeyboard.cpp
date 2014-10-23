@@ -45,8 +45,6 @@ OnScreenKeyboard::OnScreenKeyboard(QWidget* parent)
       mKeyboardWidth(1080),
       mKeyboardHeight(300)
 {
-//    setStyleSheet("background:black");
-
     setDockPosition(Bottom);
 
     setWindowFlags(Qt::FramelessWindowHint);

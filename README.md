@@ -33,6 +33,9 @@ left=0                          # not used while docking, specifies upper left c
 top=0                           # not used while docking, specifies upper left corner upon start otherwise
 width=1080                      # not used while docking, specifies keyboard width otherwise
 height=350                      # keyboard height while docking or floating mode
+
+[style]
+stylesheet=flat.css             # reads and sets styles/flat.css as stylesheet
 ```
 
 ### Docking and Keyboard Geometry
@@ -196,3 +199,70 @@ Rows are organized in `rows` Array of the root object in the same manner as keys
 ### Shift Mode
 
 To input the characters defined in `shift` property of key definitions, the keyboard must go into Shift mode. This can be done by pressing a button with either `shift` or `capslock` role. `Shift` key puts the keyboard into the Shift mode for one keystroke, while `capslock` key does this for unlimited keystrokes until the `capslock` button isn't hit again. Being pressed at the same time, `capslock` and `shift` button do effectively cancel each other, hence moving the keyboard back into Main mode again. 
+
+### Styling
+
+Stylesheets are residing in `styles` directory at the same level as the executable. There are two styles shipped with the program: `flat.css` imitating Windows 8 flat keyboard and `3d.css` somehow resembling 3D look of Windows 7 keyboard. Stylesheets are created and modified according to [Qt 4 stylesheet](http://qt-project.org/doc/qt-4.8/stylesheet.html) reference manual with an extension of OSK explained further.
+
+#### Keyboard Style
+
+Keyboard itself (container holding the keys) is a QWidget descendant, so it is styled as a QWidget:
+
+```CSS
+QWidget {
+    background-color: gray;
+}
+```
+
+#### Key Style
+
+Key backgrounds (containers holding text) are QLabels, so they should be styles as a QLabel:
+
+```CSS
+QLabel {
+    font-family: 'Segoe UI Light';
+
+    background-color: black;
+}
+```
+
+A pressed key holds `pressed=true` dynamic property:
+
+```CSS
+QLabel[pressed="true"] {
+    background-color: #A0A0A0;
+}
+```
+
+#### Styling Key Labels
+
+*This part is Osk's extension to Qt 4 stylesheets*.
+
+Key text styles are like CSS class selectors. Primary key text styles as .key-primary: 
+
+```CSS
+.key-primary {
+    font-size: 32px;
+    color: white;
+}
+```
+
+Secondary key text (the one produced by a key in Shift mode) is styled as .key-secondary:
+
+```CSS
+.key-secondary {
+    font-size: 24px;
+    color: #A0A0A0;
+}
+```
+
+Pressed key texts are styled with :active selector: 
+
+```CSS
+.key-primary:active {
+    font-size: 32px;
+    color: white;
+}
+```
+
+Note that the active selector still requires all style properties set, it behaves like a separate style and does not override any property of the same class without :active selector. *This behavior differs from standard CSS.*

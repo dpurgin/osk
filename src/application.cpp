@@ -45,21 +45,18 @@ Application::Application(int& argc, char* argv[])
     if (openLastLayout() && lastLayout().isEmpty())
         setLastLayout(defaultLayout());
 
-    QFile css(applicationDirPath() + "/style.css");
 
-    if (css.open(QFile::ReadOnly))
-    {
-        setStyleSheet(QString::fromUtf8(css.readAll().data()));
-        css.close();
-    }
+    settings->beginGroup("style");
+        QString stylesheet = settings->value("stylesheet", "flat.css").toString();
 
-//    settings->beginGroup("style");
-//        mPrimaryFontFace = settings->value("primaryFontFace", "Segoe UI Light").toString();
-//        mSecondaryFontFace = settings->value("secondaryFontFace", "Segoe UI Light").toString();
+        QFile css(applicationDirPath() + "/styles/" + stylesheet);
 
-//        mPrimaryFontColor = settings->value("primaryFontColor", "white").toString();
-//        mSecondaryFontColor = settings->value("secondaryFontColor", "")
-//    settings->endGroup();
+        if (css.open(QFile::ReadOnly))
+        {
+            setStyleSheet(QString::fromUtf8(css.readAll().data()));
+            css.close();
+        }
+    settings->endGroup();
 
     mOsk = new OnScreenKeyboard();
 

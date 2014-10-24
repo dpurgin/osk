@@ -1,0 +1,56 @@
+/* keyboard background style */
+QWidget {
+    background-color: black
+}
+
+/* unpressed key style */
+QLabel {
+    font-family: 'Segoe UI';
+  
+    border: 2px solid;
+    border-radius: 3px;
+    border-top-color: rgb(230, 230, 230);
+    border-right-color: qlineargradient(spread: pad, 
+                                        x1: 0, y1: 0, x2: 0, y2: 1, 
+                                        stop: 0 rgba(230, 230, 230, 255), 
+                                        stop: 1 rgba(100, 100, 100, 255));
+    border-left-color: qlineargradient(spread: pad, 
+                                        x1: 0, y1: 0, x2: 0, y2: 1, 
+                                        stop: 0 rgba(230, 230, 230, 255), 
+                                        stop: 1 rgba(100, 100, 100, 255));
+
+
+    background-color: qlineargradient(spread: pad, 
+                                      x1: 0, y1: 0, x2: 0, y2: 1, 
+                                      stop: 0 rgb(147, 147, 147), 
+                                      stop: 1 rgb(0, 0, 0));
+}
+
+/* pressed key style */
+QLabel[pressed="true"] {
+    background-color: rgb(230, 230, 230);
+}
+
+/* primary key text */
+.key-primary {
+    font-size: 32px;
+    color: white;
+}
+
+/* pressed primary key text */
+.key-primary:active {
+    font-size: 32px;
+    color: black;
+}
+
+/* Shift mode text style */
+.key-secondary {
+    font-size: 24px;
+    color: gray;
+}
+
+/* pressed Shift mode text style */
+.key-secondary:active {
+    font-size: 24px;
+    color: white;
+}

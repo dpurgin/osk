@@ -32,6 +32,8 @@ LIBS += User32.lib
 
 INCLUDEPATH += ../jansson/jansson/src ../jansson
 
+RC_FILE = osk.rc
+
 SOURCES += main.cpp\
     onscreenkeyboard.cpp \
     onscreenbutton.cpp \
@@ -41,3 +43,5 @@ HEADERS  += \
     onscreenkeyboard.h \
     onscreenbutton.h \
     application.h
+
+OTHER_FILES += osk.rc

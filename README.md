@@ -16,10 +16,10 @@ Osk is a flexible and customizable on-screen keyboard for Windows supporting Uni
 			- [Loadlayout Key Example](#user-content-loadlayout-key-example)
 		- [Rows](#user-content-rows)
 		- [Shift Mode](#user-content-shift-mode)
-		- [Styling](#user-content-styling)
-			- [Keyboard Style](#user-content-keyboard-style)
-			- [Key Style](#user-content-key-style)
-			- [Styling Key Labels](#user-content-styling-key-labels)
+	- [Styling](#user-content-styling)
+		- [Keyboard Style](#user-content-keyboard-style)
+		- [Key Style](#user-content-key-style)
+		- [Styling Key Labels](#user-content-styling-key-labels)
 			
 ## Build Requirements
  - Jansson (referenced in repository)
@@ -219,11 +219,11 @@ Rows are organized in `rows` Array of the root object in the same manner as keys
 
 To input the characters defined in `shift` property of key definitions, the keyboard must go into Shift mode. This can be done by pressing a button with either `shift` or `capslock` role. `Shift` key puts the keyboard into the Shift mode for one keystroke, while `capslock` key does this for unlimited keystrokes until the `capslock` button isn't hit again. Being pressed at the same time, `capslock` and `shift` button do effectively cancel each other, hence moving the keyboard back into Main mode again. 
 
-### Styling
+## Styling
 
 Stylesheets are residing in `styles` directory at the same level as the executable. There are two styles shipped with the program: `flat.css` imitating Windows 8 flat keyboard and `3d.css` somehow resembling 3D look of Windows 7 keyboard. Stylesheets are created and modified according to [Qt 4 stylesheet](http://qt-project.org/doc/qt-4.8/stylesheet.html) reference manual with an extension of OSK explained further.
 
-#### Keyboard Style
+### Keyboard Style
 
 Keyboard itself (container holding the keys) is a QWidget descendant, so it is styled as a QWidget:
 
@@ -233,7 +233,7 @@ QWidget {
 }
 ```
 
-#### Key Style
+### Key Style
 
 Key backgrounds (containers holding text) are QLabels, so they should be styles as a QLabel:
 
@@ -253,7 +253,7 @@ QLabel[pressed="true"] {
 }
 ```
 
-#### Styling Key Labels
+### Styling Key Labels
 
 *This part is Osk's extension to Qt 4 stylesheets*.
 

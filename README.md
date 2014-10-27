@@ -2,6 +2,25 @@
 
 Osk is a flexible and customizable on-screen keyboard for Windows supporting Unicode input and dynamic layout switching. It is designed to be used primarily on self-service terminals or in any other environment where only limited keyboard input is allowed. Osk simulates keystrokes using [SendInput](http://msdn.microsoft.com/en-us/library/windows/desktop/ms646310%28v=vs.85%29.aspx) call.
 
+**Table of Contents**
+
+- [osk](#user-content-osk)
+	- [Build Requirements](#user-content-build-requirements)
+	- [Usage](#user-content-usage)
+	- [Settings](#user-content-settings)
+		- [Docking and Keyboard Geometry](#user-content-docking-and-keyboard-geometry)
+	- [Editing Layouts](#user-content-editing-layouts)
+		- [Keys](#user-content-keys)
+			- [Character Key Example](#user-content-character-key-example)
+			- [Function Key Example](#user-content-function-key-example)
+			- [Loadlayout Key Example](#user-content-loadlayout-key-example)
+		- [Rows](#user-content-rows)
+		- [Shift Mode](#user-content-shift-mode)
+		- [Styling](#user-content-styling)
+			- [Keyboard Style](#user-content-keyboard-style)
+			- [Key Style](#user-content-key-style)
+			- [Styling Key Labels](#user-content-styling-key-labels)
+			- 
 ## Build Requirements
  - Jansson (referenced in repository)
  - Qt 4.8 

@@ -20,7 +20,7 @@ Osk is a flexible and customizable on-screen keyboard for Windows supporting Uni
 			- [Keyboard Style](#user-content-keyboard-style)
 			- [Key Style](#user-content-key-style)
 			- [Styling Key Labels](#user-content-styling-key-labels)
-			- 
+			
 ## Build Requirements
  - Jansson (referenced in repository)
  - Qt 4.8 

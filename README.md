@@ -2,6 +2,8 @@
 
 Osk is a flexible and customizable on-screen keyboard for Windows supporting Unicode input and dynamic layout switching. It is designed to be used primarily on self-service terminals or in any other environment where only limited keyboard input is allowed. Osk simulates keystrokes using [SendInput](http://msdn.microsoft.com/en-us/library/windows/desktop/ms646310%28v=vs.85%29.aspx) call.
 
+Prebuilt binaries are located at https://dpurgin.github.io/
+
 **Table of Contents**
 
 - [osk](#user-content-osk)
@@ -20,6 +22,7 @@ Osk is a flexible and customizable on-screen keyboard for Windows supporting Uni
 		- [Keyboard Style](#user-content-keyboard-style)
 		- [Key Style](#user-content-key-style)
 		- [Styling Key Labels](#user-content-styling-key-labels)
+	- [Contacts](#user-content-contacts)
 			
 ## Build Requirements
  - Jansson (referenced in repository)
@@ -285,3 +288,6 @@ Pressed key texts are styled with :active selector:
 ```
 
 Note that the active selector still requires all style properties set, it behaves like a separate style and does not override any property of the same class without :active selector. *This behavior differs from standard CSS.*
+
+## Contacts
+If you have any questions, please contact me at <dmitriy.purgin@ibsproject.kz>
